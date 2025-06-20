@@ -1,0 +1,120 @@
+import { defineField, defineType } from 'sanity';
+
+export default defineType({
+  name: 'accessoryAttributes',
+  title: 'Accessory Attributes',
+  type: 'object',
+  fields: [
+    defineField({
+      name: 'type',
+      title: 'Accessory Type',
+      type: 'string',
+      options: {
+        list: [
+          { title: 'Case', value: 'case' },
+          { title: 'Screen Protector', value: 'screen_protector' },
+          { title: 'Charger', value: 'charger' },
+          { title: 'Cable', value: 'cable' },
+          { title: 'Power Bank', value: 'power_bank' },
+          { title: 'Wireless Charger', value: 'wireless_charger' },
+          { title: 'Earphones/Headphones', value: 'earphones' },
+          { title: 'Adapter', value: 'adapter' },
+          { title: 'Stand/Holder', value: 'stand' },
+          { title: 'Car Mount', value: 'car_mount' },
+          { title: 'Stylus', value: 'stylus' },
+          { title: 'Other', value: 'other' },
+        ],
+        layout: 'dropdown',
+      },
+      validation: Rule => Rule.required(),
+    }),
+    defineField({
+      name: 'brand',
+      title: 'Brand',
+      type: 'reference',
+      to: [{ type: 'brand' }],
+    }),
+    defineField({
+      name: 'compatibility',
+      title: 'iPhone Compatibility',
+      type: 'array',
+      of: [{ type: 'string' }],
+      description: 'Select all iPhone models this accessory is compatible with',
+      options: {
+        list: [
+          { title: 'iPhone 15 Series', value: 'iphone_15_series' },
+          { title: 'iPhone 14 Series', value: 'iphone_14_series' },
+          { title: 'iPhone 13 Series', value: 'iphone_13_series' },
+          { title: 'iPhone 12 Series', value: 'iphone_12_series' },
+          { title: 'iPhone 11 Series', value: 'iphone_11_series' },
+          { title: 'iPhone SE (2nd/3rd gen)', value: 'iphone_se' },
+          { title: 'iPhone X/XS/XR', value: 'iphone_x_series' },
+          { title: 'iPhone 8/8 Plus', value: 'iphone_8_series' },
+          { title: 'iPhone 7/7 Plus', value: 'iphone_7_series' },
+          { title: 'iPhone 6/6s/SE (1st gen)', value: 'iphone_6_series' },
+        ],
+        layout: 'grid',
+      },
+    }),
+    defineField({
+      name: 'color',
+      title: 'Color',
+      type: 'string',
+      description: 'Main color of the accessory',
+    }),
+    defineField({
+      name: 'material',
+      title: 'Material',
+      type: 'string',
+      description: 'e.g., Silicone, Leather, Plastic, Metal',
+    }),
+    defineField({
+      name: 'condition',
+      title: 'Condition',
+      type: 'string',
+      options: {
+        list: [
+          { title: 'New (Sealed)', value: 'new_sealed' },
+          { title: 'New (Open Box)', value: 'new_open_box' },
+          { title: 'Used - Like New', value: 'used_like_new' },
+          { title: 'Used - Good', value: 'used_good' },
+          { title: 'Used - Fair', value: 'used_fair' },
+        ],
+        layout: 'dropdown',
+      },
+      initialValue: 'new_sealed',
+    }),
+    defineField({
+      name: 'features',
+      title: 'Features',
+      type: 'array',
+      of: [{ type: 'string' }],
+      description: 'Key features of the accessory',
+      options: {
+        layout: 'tags',
+      },
+    }),
+    defineField({
+      name: 'includes',
+      title: 'What\'s Included',
+      type: 'array',
+      of: [{ type: 'string' }],
+      options: {
+        list: [
+          { title: 'Original Packaging', value: 'original_packaging' },
+          { title: 'User Manual', value: 'manual' },
+          { title: 'Warranty Card', value: 'warranty_card' },
+          { title: 'Cleaning Cloth', value: 'cleaning_cloth' },
+          { title: 'Installation Tools', value: 'installation_tools' },
+        ],
+        layout: 'grid',
+      },
+    }),
+    defineField({
+      name: 'warranty',
+      title: 'Warranty',
+      type: 'string',
+      description: 'Warranty information (if any)',
+    }),
+  ],
+});

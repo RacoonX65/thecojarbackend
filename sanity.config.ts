@@ -1,54 +1,18 @@
-import {defineConfig, isDev} from 'sanity'
-
+import {defineConfig} from 'sanity'
 import {structureTool} from 'sanity/structure'
-import {schemaTypes} from './schemaTypes'
-import {structure} from './structure'
-
-import {visionTool} from '@sanity/vision'
 import {colorInput} from '@sanity/color-input'
-import {imageHotspotArrayPlugin} from 'sanity-plugin-hotspot-array'
-import {media, mediaAssetSource} from 'sanity-plugin-media'
-import {customDocumentActions} from './plugins/customDocumentActions'
-import Navbar from './components/studio/Navbar'
-
-const devOnlyPlugins = [visionTool()]
+import {schemaTypes} from './schemas'
 
 export default defineConfig({
   name: 'default',
-  title: 'Iphonejar-sneaker-jar',
-
+  title: 'The Jar Co - E-commerce',
   projectId: 'gf16m01n',
   dataset: 'production',
-
   plugins: [
-    structureTool({structure}),
+    structureTool(),
     colorInput(),
-    imageHotspotArrayPlugin(),
-    customDocumentActions(),
-    media(),
-    ...(isDev ? devOnlyPlugins : []),
   ],
-
   schema: {
     types: schemaTypes,
-  },
-
-  form: {
-    file: {
-      assetSources: (previousAssetSources) => {
-        return previousAssetSources.filter((assetSource) => assetSource !== mediaAssetSource)
-      },
-    },
-    image: {
-      assetSources: (previousAssetSources) => {
-        return previousAssetSources.filter((assetSource) => assetSource === mediaAssetSource)
-      },
-    },
-  },
-
-  studio: {
-    components: {
-      navbar: Navbar,
-    },
   },
 })

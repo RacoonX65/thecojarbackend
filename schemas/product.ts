@@ -171,6 +171,22 @@ export default defineType({
       type: 'seo',
     }),
     defineField({
+      name: 'purchaseCount',
+      title: 'Times Purchased',
+      type: 'number',
+      description: 'Total number of times this product has been purchased',
+      initialValue: 0,
+      readOnly: true,
+      validation: Rule => Rule.min(0).integer(),
+    }),
+    defineField({
+      name: 'lastPurchased',
+      title: 'Last Purchased',
+      type: 'datetime',
+      description: 'Date and time when this product was last purchased',
+      readOnly: true,
+    }),
+    defineField({
       name: 'status',
       title: 'Status',
       type: 'string',
@@ -192,9 +208,10 @@ export default defineType({
       media: 'mainImage',
       price: 'price',
       status: 'status',
+      purchaseCount: 'purchaseCount',
     },
     prepare(selection) {
-      const { title, productType, media, price, status } = selection;
+      const { title, productType, media, price, status, purchaseCount } = selection;
       
       const typeIcons = {
         sneaker: '👟',
@@ -210,7 +227,7 @@ export default defineType({
       
       return {
         title: title || 'Untitled',
-        subtitle: `${typeIcons[productType as keyof typeof typeIcons] || '📦'} ${productType ? productType.charAt(0).toUpperCase() + productType.slice(1) : 'Product'} • ZAR ${price || 0} • ${statusIcons[status as keyof typeof statusIcons] || ''} ${status || ''}`,
+        subtitle: `${typeIcons[productType as keyof typeof typeIcons] || '📦'} ${productType ? productType.charAt(0).toUpperCase() + productType.slice(1) : 'Product'} • ZAR ${price || 0} • ${purchaseCount || 0} sold • ${statusIcons[status as keyof typeof statusIcons] || ''} ${status || ''}`,
         media,
       };
     },
@@ -235,6 +252,16 @@ export default defineType({
       title: 'Price (Low to High)',
       name: 'priceAsc',
       by: [{ field: 'price', direction: 'asc' }],
+    },
+    {
+      title: 'Most Popular',
+      name: 'popularityDesc',
+      by: [{ field: 'purchaseCount', direction: 'desc' }],
+    },
+    {
+      title: 'Recently Purchased',
+      name: 'lastPurchasedDesc',
+      by: [{ field: 'lastPurchased', direction: 'desc' }],
     },
   ],
 });

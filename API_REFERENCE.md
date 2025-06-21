@@ -11,12 +11,16 @@ This document provides comprehensive documentation for frontend developers and A
   - [Category](#category)
   - [Order](#order)
   - [Customer](#customer)
+  - [Site Settings](#site-settings)
+  - [Cart](#cart)
+  - [Coupon](#coupon)
   - [Shipping Methods](#shipping-methods)
   - [Payment Methods](#payment-methods)
 - [Query Examples](#query-examples)
 - [Real-time Updates](#real-time-updates)
 - [Image Handling](#image-handling)
 - [Webhooks](#webhooks)
+- [Frontend Integration](#frontend-integration)
 
 ## Authentication
 
@@ -94,6 +98,105 @@ Current API version: `2023-05-03`
 - `tax` - Tax amount
 - `total` - Order total
 - `notes` - Order notes
+
+### Customer
+
+**Type:** `customer`
+
+**Fields:**
+- `name` - Full name
+- `email` - Contact email
+- `phone` - Contact number
+- `billingAddress` - Default billing details
+- `shippingAddress` - Default shipping details
+- `additionalAddresses` - Saved addresses
+- `orders` - Order history
+- `wishlist` - Saved products
+- `loyaltyPoints` - Loyalty points balance
+
+### Site Settings
+
+**Type:** `siteSettings`
+
+**Fields:**
+- `title` - Site title
+- `description` - Site description
+- `logo` - Site logo
+- `favicon` - Site favicon
+- `business` - Business information
+  - `name` - Business name
+  - `phone` - Contact phone
+  - `email` - Contact email
+  - `address` - Business address
+  - `vatNumber` - VAT number
+  - `businessHours` - Operating hours
+- `social` - Social media links
+  - `facebook` - Facebook URL
+  - `instagram` - Instagram URL
+  - `twitter` - Twitter URL
+  - `whatsapp` - WhatsApp number
+- `navigation` - Navigation structure
+  - `mainMenu` - Main navigation items
+  - `footerLinks` - Footer links
+- `checkout` - Checkout settings
+  - `minimumOrderAmount` - Minimum order value
+  - `freeShippingThreshold` - Free shipping threshold
+  - `termsAndConditions` - Terms & conditions
+  - `privacyPolicy` - Privacy policy
+  - `returnPolicy` - Return policy
+  - `shippingPolicy` - Shipping policy
+
+### Cart
+
+**Type:** `cart`
+
+**Fields:**
+- `sessionId` - Unique session identifier
+- `customer` - Customer reference (for logged-in users)
+- `items` - Cart items array
+  - `product` - Product reference
+  - `quantity` - Item quantity
+  - `selectedVariant` - Selected variant details
+  - `price` - Price at time of addition
+  - `addedAt` - When item was added
+- `shippingMethod` - Selected shipping method
+- `shippingAddress` - Shipping address
+- `billingAddress` - Billing address
+- `appliedCoupon` - Applied discount coupon
+- `totals` - Cart totals
+  - `subtotal` - Items subtotal
+  - `shipping` - Shipping cost
+  - `tax` - Tax amount
+  - `discount` - Discount amount
+  - `total` - Final total
+- `expiresAt` - Cart expiration date
+- `lastActivity` - Last activity timestamp
+
+### Coupon
+
+**Type:** `coupon`
+
+**Fields:**
+- `code` - Coupon code
+- `title` - Coupon title
+- `description` - Coupon description
+- `discountType` - "percentage", "fixed", or "free_shipping"
+- `discountValue` - Discount amount or percentage
+- `minimumOrderAmount` - Minimum order value required
+- `maximumDiscount` - Maximum discount (for percentage)
+- `applicableProducts` - Products this coupon applies to
+- `applicableCategories` - Categories this coupon applies to
+- `excludedProducts` - Products excluded from coupon
+- `usageLimit` - Total usage limit
+- `usageCount` - Times used
+- `perCustomerLimit` - Usage limit per customer
+- `validFrom` - Start date
+- `validUntil` - End date
+- `isActive` - Whether coupon is active
+- `isPublic` - Whether to show publicly
+- `customerGroups` - Target customer groups
+- `firstTimeOnly` - First-time customers only
+- `combineWithOtherOffers` - Can combine with other offers
 
 ## Query Examples
 
@@ -177,6 +280,137 @@ Current API version: `2023-05-03`
   price,
   "imageUrl": mainImage.asset->url,
   purchaseCount
+}
+```
+
+### Get Site Settings
+
+```groovy
+// GROQ Query
+*[_type == "siteSettings"][0] {
+  title,
+  description,
+  "logo": logo.asset->url,
+  "favicon": favicon.asset->url,
+  business {
+    name,
+    phone,
+    email,
+    address,
+    vatNumber,
+    businessHours
+  },
+  social {
+    facebook,
+    instagram,
+    twitter,
+    whatsapp
+  },
+  navigation {
+    mainMenu[] {
+      title,
+      link,
+      isExternal,
+      "category": category->{
+        _id,
+        title,
+        "slug": slug.current
+      },
+      "collection": collection->{
+        _id,
+        title,
+        "slug": slug.current
+      },
+      children[] {
+        title,
+        link,
+        "category": category->{
+          _id,
+          title,
+          "slug": slug.current
+        }
+      }
+    },
+    footerLinks[] {
+      title,
+      link
+    }
+  },
+  checkout {
+    minimumOrderAmount,
+    freeShippingThreshold,
+    termsAndConditions,
+    privacyPolicy,
+    returnPolicy,
+    shippingPolicy
+  },
+  seo {
+    metaTitle,
+    metaDescription,
+    keywords,
+    "metaImage": metaImage.asset->url
+  }
+}
+```
+
+### Get Cart by Session
+
+```groovy
+// GROQ Query
+*[_type == "cart" && sessionId == $sessionId][0] {
+  _id,
+  sessionId,
+  "customer": customer->{
+    _id,
+    name,
+    email
+  },
+  items[] {
+    _key,
+    quantity,
+    price,
+    selectedVariant,
+    "product": product->{
+      _id,
+      title,
+      "slug": slug.current,
+      "mainImage": mainImage.asset->url,
+      productType,
+      price
+    }
+  },
+  shippingMethod,
+  shippingAddress,
+  billingAddress,
+  appliedCoupon,
+  totals,
+  expiresAt,
+  lastActivity
+}
+```
+
+### Validate Coupon Code
+
+```groovy
+// GROQ Query
+*[_type == "coupon" && code == $code && isActive == true && 
+  validFrom <= now() && validUntil >= now()][0] {
+  _id,
+  code,
+  title,
+  description,
+  discountType,
+  discountValue,
+  minimumOrderAmount,
+  maximumDiscount,
+  usageLimit,
+  usageCount,
+  perCustomerLimit,
+  applicableProducts[]->._id,
+  applicableCategories[]->._id,
+  excludedProducts[]->._id,
+  firstTimeOnly,
+  combineWithOtherOffers
 }
 ```
 
@@ -290,16 +524,26 @@ Triggered when a product is created or updated.
 }
 ```
 
-## Best Practices
+### Cart Updated
+Triggered when a cart is updated.
 
-1. **Caching**: Implement client-side caching for product data
-2. **Pagination**: Use GROQ's offset and limit for large datasets
-3. **Projections**: Only request the fields you need
-4. **Error Handling**: Implement proper error handling for API calls
-5. **Rate Limiting**: Respect API rate limits
-6. **Environment Variables**: Store sensitive information in environment variables
+**Endpoint:** `[YOUR_WEBHOOK_URL]/api/cart/updated`
 
-## Example Frontend Integration
+**Payload:**
+```json
+{
+  "_type": "cart",
+  "_id": "cart-id",
+  "sessionId": "session_abc123",
+  "itemCount": 3,
+  "total": 2999,
+  "lastActivity": "2024-01-15T10:30:00Z"
+}
+```
+
+## Frontend Integration
+
+### Next.js Setup
 
 ```javascript
 // lib/sanity.js
@@ -321,7 +565,8 @@ export async function getAllProducts() {
       "slug": slug.current,
       price,
       "imageUrl": mainImage.asset->url,
-      purchaseCount
+      purchaseCount,
+      productType
     }
   `);
 }
@@ -390,7 +635,195 @@ export async function getProductBySlug(slug) {
   );
   return result;
 }
+
+// Fetch site settings
+export async function getSiteSettings() {
+  return client.fetch(`
+    *[_type == "siteSettings"][0] {
+      title,
+      description,
+      "logo": logo.asset->url,
+      "favicon": favicon.asset->url,
+      business {
+        name,
+        phone,
+        email,
+        address,
+        vatNumber,
+        businessHours
+      },
+      social {
+        facebook,
+        instagram,
+        twitter,
+        whatsapp
+      },
+      navigation {
+        mainMenu[] {
+          title,
+          link,
+          isExternal,
+          "category": category->{
+            _id,
+            title,
+            "slug": slug.current
+          },
+          "collection": collection->{
+            _id,
+            title,
+            "slug": slug.current
+          },
+          children[] {
+            title,
+            link,
+            "category": category->{
+              _id,
+              title,
+              "slug": slug.current
+            }
+          }
+        },
+        footerLinks[] {
+          title,
+          link
+        }
+      },
+      checkout {
+        minimumOrderAmount,
+        freeShippingThreshold,
+        termsAndConditions,
+        privacyPolicy,
+        returnPolicy,
+        shippingPolicy
+      },
+      seo {
+        metaTitle,
+        metaDescription,
+        keywords,
+        "metaImage": metaImage.asset->url
+      }
+    }
+  `);
+}
+
+// Validate coupon
+export async function validateCoupon(code, customerId = null) {
+  return client.fetch(`
+    *[_type == "coupon" && code == $code && isActive == true && 
+      validFrom <= now() && validUntil >= now()][0] {
+      _id,
+      code,
+      title,
+      description,
+      discountType,
+      discountValue,
+      minimumOrderAmount,
+      maximumDiscount,
+      usageLimit,
+      usageCount,
+      perCustomerLimit,
+      applicableProducts[]->._id,
+      applicableCategories[]->._id,
+      excludedProducts[]->._id,
+      firstTimeOnly,
+      combineWithOtherOffers
+    }`,
+    { code }
+  );
+}
 ```
+
+### Cart Management
+
+```javascript
+// lib/cart.js
+import { client } from './sanity';
+
+// Create or update cart
+export async function updateCart(cartData) {
+  const { sessionId, customer, items, totals, lastActivity } = cartData;
+  
+  // Check if cart exists
+  const existingCart = await client.fetch(
+    `*[_type == "cart" && sessionId == $sessionId][0]`,
+    { sessionId }
+  );
+
+  if (existingCart) {
+    // Update existing cart
+    return client
+      .patch(existingCart._id)
+      .set({
+        items,
+        totals,
+        lastActivity: new Date().toISOString(),
+        ...(customer && { customer: { _type: 'reference', _ref: customer._id } })
+      })
+      .commit();
+  } else {
+    // Create new cart
+    return client.create({
+      _type: 'cart',
+      sessionId,
+      customer: customer ? { _type: 'reference', _ref: customer._id } : null,
+      items,
+      totals,
+      lastActivity: new Date().toISOString(),
+      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days
+    });
+  }
+}
+
+// Get cart by session
+export async function getCart(sessionId) {
+  return client.fetch(`
+    *[_type == "cart" && sessionId == $sessionId][0] {
+      _id,
+      sessionId,
+      "customer": customer->{
+        _id,
+        name,
+        email
+      },
+      items[] {
+        _key,
+        quantity,
+        price,
+        selectedVariant,
+        "product": product->{
+          _id,
+          title,
+          "slug": slug.current,
+          "mainImage": mainImage.asset->url,
+          productType,
+          price
+        }
+      },
+      shippingMethod,
+      shippingAddress,
+      billingAddress,
+      appliedCoupon,
+      totals,
+      expiresAt,
+      lastActivity
+    }`,
+    { sessionId }
+  );
+}
+```
+
+## Best Practices
+
+1. **Caching**: Implement client-side caching for product data
+2. **Pagination**: Use GROQ's offset and limit for large datasets
+3. **Projections**: Only request the fields you need
+4. **Error Handling**: Implement proper error handling for API calls
+5. **Rate Limiting**: Respect API rate limits
+6. **Environment Variables**: Store sensitive information in environment variables
+7. **Type Safety**: Use TypeScript for better development experience
+8. **Image Optimization**: Use Sanity's image transformations
+9. **Real-time Updates**: Implement real-time updates for critical data
+10. **Security**: Validate all inputs and sanitize outputs
 
 ## Troubleshooting
 
@@ -410,6 +843,16 @@ export async function getProductBySlug(slug) {
    - Add indexes for frequently queried fields
    - Use projections to limit returned data
    - Implement caching where appropriate
+
+4. **Image Loading Issues**
+   - Check image asset references
+   - Verify image transformations
+   - Ensure proper CORS headers
+
+5. **Cart Issues**
+   - Check session ID format
+   - Verify cart expiration
+   - Ensure proper variant selection
 
 ## Support
 
